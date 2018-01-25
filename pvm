@@ -4,73 +4,27 @@
 
 # Get arguments
 
+DFUBAUDRATE="14400"
+
+for modem in /dev/cu.usbmodem*
+do
+  MODEM="$modem"
+done
+
 flash_binary()
-{
-  dfu-util -d "$DFU_ADDRESS1" -a 0 -i 0 -s "$DFU_ADDRESS2":leave -D "$1"#&> /dev/null
+{  echo "flashing $1"
+  particle flash --usb "$1"
 }
 
-dfu_open()
+dfu()
 {
-DFU_LIST="$(dfu-util -l)"
-
-if echo "$DFU_LIST" | grep "2b04:d006" > /dev/null || echo "$DFU_LIST" | grep "2b04:d008" > /dev/null ||  echo "$DFU_LIST" | grep "2b04:d00a" > /dev/null || echo "$DFU_LIST" | grep "1d50:607f" > /dev/null || echo "$DFU_LIST" | grep "2b04:d058" > /dev/null ;
-then
-  blue_echo "
-Already found a device in DFU mode!
-"
-  return
-fi
-
-if [ "$1" == "-d" ] || [ "$1" == "--device" ];
-then
-
-  if [[ -e "$2" ]]; # Check if serial port is avaliable
-  then
-  blue_echo "
-Placing device $2 into DFU mode...
-"
-  stty -f "$2" "$DFUBAUDRATE" > /dev/null
-  return
-
-else
-  red_echo "
-Could not find a device on $2
-  "
-  fi
-
-  return
-fi
-
-    if [ "$DEVICE_TYPE" == "duo" ];
-    then
-        if [ -e "$MODEM_DUO" ];
-        then
-            MODEM="$MODEM_DUO"
-        else
-            echo
-            red_echo "Device not found!"
-            echo
-            blue_echo "Your device must be connected by USB."
-            echo
-            exit
-        fi
-    else
-        if [ -e "$MODEM" ];
-        then
-            MODEM="$MODEM"
-        else
-            echo
-            red_echo "Device not found!"
-            echo
-            blue_echo "Your device must be connected by USB."
-            echo
-            exit
-        fi
-    fi
-
+    if [[ "$1" == "open" ]]; then
     if [ -e "$MODEM" ];
     then
         stty -f "$MODEM" "$DFUBAUDRATE" > /dev/null
+    fi
+    else
+      dfu-util -d "$DFU_ADDRESS1" -a 0 -i 0 -s "$DFU_ADDRESS2":leave -D /dev/null &> /dev/null
     fi
 }
 
@@ -108,13 +62,19 @@ else
   echo
 fi
 
-dfu_open
+# exit
+
+echo "$MODEM"
 
 for PART in $SYSTEM_PARTS ; do
+  dfu open
   curl -sLo "bin/$PART" "https://github.com/particle-iot/firmware/releases/download/v${VERSION}/$PART"
   flash_binary "bin/$PART"
-  sleep 1
+  echo
+  sleep 3
 done
+
+dfu close
 
 
 
