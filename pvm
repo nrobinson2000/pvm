@@ -66,6 +66,8 @@ fi
 
 echo "$MODEM"
 
+[[ -d "bin" ]] || mkdir "bin"
+
 for PART in $SYSTEM_PARTS ; do
   dfu open
   curl -sLo "bin/$PART" "https://github.com/particle-iot/firmware/releases/download/v${VERSION}/$PART"
