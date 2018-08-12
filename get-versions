@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+PLATFORM="$1"
+
+# curl -s "https://api.github.com/repos/particle-iot/firmware/releases" | grep "\"name\":" | grep -oE "system-part1(.*?)${PLATFORM}.bin" | grep -oE -- "-(.*?)-(.*?)-" | grep -oE -- "1-(.*?)-" | grep -oE -- "-(.*?)-" |  | sort
+
+
+#curl -s "https://api.github.com/repos/particle-iot/firmware/releases" | grep "\"name\":" | grep -oE "system-part1(.*?)${PLATFORM}.bin" | grep -oE "([0-9])\.([0-9])\.([0-9])(.*?)(?=-photon)" | sort
+
+
+#curl -s "https://api.github.com/repos/particle-iot/firmware/branches"
+
+curl -s "https://api.github.com/repos/particle-iot/firmware/releases" | grep "tag_name" | grep -Po "v(.*?)(?=\")" | sort | sed 's/^/release\//'
+
+
+#
